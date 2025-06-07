@@ -3,6 +3,7 @@ import streamlit as st
 import streamlit.components.v1 as components  # For embedding custom HTML
 from generate_knowledge_graph import generate_knowledge_graph
 import os
+import re
 
 st.set_page_config(
     page_icon=None,
@@ -29,8 +30,17 @@ input_method = st.sidebar.radio(
 )
 
 # Dropdown list of saved graphs
-saved_files = sorted([f for f in os.listdir("out") if f.endswith(".html")])
-selected_saved = st.sidebar.selectbox("保存済みグラフを表示", saved_files) if saved_files else None
+files = [f for f in os.listdir("out") if f.endswith(".html")]
+info_list = []
+for f in files:
+    m = re.match(r"(\d{8}_\d{6})_(.*?)_(.*)\.html$", f)
+    if m:
+        timestamp, summary, model = m.groups()
+        info_list.append((timestamp, summary, model, f))
+info_list.sort(key=lambda x: x[0], reverse=True)
+display_names = [f"{info[1]}_{info[2]}" for info in info_list]
+file_map = {f"{info[1]}_{info[2]}": info[3] for info in info_list}
+selected_display = st.sidebar.selectbox("保存済みグラフを表示", display_names) if display_names else None
 
 generated = False
 
@@ -56,6 +66,6 @@ else:
                     components.html(HtmlFile.read(), height=1000)
                 generated = True
 
-if not generated and selected_saved:
-    with open(os.path.join("out", selected_saved), "r", encoding="utf-8") as HtmlFile:
+if not generated and selected_display:
+    with open(os.path.join("out", file_map[selected_display]), "r", encoding="utf-8") as HtmlFile:
         components.html(HtmlFile.read(), height=1000)
