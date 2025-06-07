@@ -76,10 +76,18 @@ model_options = [
 selected_model = st.sidebar.selectbox("LLMモデル:", model_options, index=0)
 
 st.sidebar.title("入力ドキュメント")
+# Remember the input method so users can switch back and forth
+if "input_method" not in st.session_state:
+    st.session_state.input_method = "テキストをアップロード"
 input_method = st.sidebar.radio(
     "入力方法を選択してください:",
-    ["テキストをアップロード", "テキストを入力"]
+    ["テキストをアップロード", "テキストを入力"],
+    key="input_method",
 )
+if input_method == "テキストをアップロード":
+    st.session_state.pop("text_input", None)
+else:
+    st.session_state.pop("text_upload", None)
 
 # Dropdown list of saved graphs
 files = [f for f in os.listdir("out") if f.endswith(".html")]
@@ -96,11 +104,15 @@ selected_display = st.sidebar.selectbox("保存済みグラフを表示", displa
 
 generated = False
 
-if input_method == "Upload txt":
-    uploaded_file = st.sidebar.file_uploader(label="ファイルをアップロード", type=["txt"])
+if input_method == "テキストをアップロード":
+    uploaded_file = st.sidebar.file_uploader(
+        label="ファイルをアップロード",
+        type=["txt"],
+        key="text_upload",
+    )
     if uploaded_file is not None:
         text = uploaded_file.read().decode("utf-8")
-        if st.sidebar.button("知識グラフを生成"):
+        if st.sidebar.button("知識グラフを生成", key="generate_button_upload"):
             with st.spinner("知識グラフを生成しています..."):
                 net, output_path, nodes, relationships = generate_knowledge_graph(
                     text, model_name=selected_model
@@ -111,9 +123,13 @@ if input_method == "Upload txt":
                     components.html(HtmlFile.read(), height=1000)
                 generated = True
 else:
-    text = st.sidebar.text_area("テキストを入力してください", height=300)
+    text = st.sidebar.text_area(
+        "テキストを入力してください",
+        height=300,
+        key="text_input",
+    )
     if text:
-        if st.sidebar.button("知識グラフを生成"):
+        if st.sidebar.button("知識グラフを生成", key="generate_button_text"):
             with st.spinner("知識グラフを生成しています..."):
                 net, output_path, nodes, relationships = generate_knowledge_graph(
                     text, model_name=selected_model

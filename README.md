@@ -67,7 +67,8 @@ This will start the application and open it in your default web browser (typical
 ## Usage
 
 1. Select an LLM model from the dropdown at the top of the sidebar
-2. Choose your input method from the sidebar (Upload txt or Input text)
+2. Choose your input method from the sidebar (テキストをアップロード or テキストを入力)
+   - You can switch between these options at any time
 3. If uploading a file, select a .txt file from your computer
 4. If using direct input, type or paste your text into the text area
 5. Click the "Generate Knowledge Graph" button
