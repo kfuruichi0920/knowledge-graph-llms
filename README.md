@@ -5,6 +5,7 @@ A Streamlit application that extract graph data (entities and relationships) fro
 
 👉 This repo is part of my project tutorial on Youtube:
 [![](https://img.youtube.com/vi/O-T_6KOXML4/0.jpg)](https://www.youtube.com/watch?v=O-T_6KOXML4)
+日本語での概要は [docs/NEW_PARTICIPANT_GUIDE_JA.md](docs/NEW_PARTICIPANT_GUIDE_JA.md) を参照してください。
 
 ## Features
 
