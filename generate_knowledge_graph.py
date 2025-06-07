@@ -13,15 +13,15 @@ from datetime import datetime
 OUTPUT_DIR = "out"
 
 
-# Load the .env file
+# .envファイルを読み込む
 load_dotenv()
-# Get API key from environment variable
+# 環境変数からAPIキーを取得
 api_key = os.getenv("OPENAI_API_KEY")
 
 
-# Extract graph data from input text
+# 入力テキストからグラフデータを抽出
 async def extract_graph_data(text, llm):
-    """Asynchronously extract graph data from input text using a given LLM."""
+    """指定したLLMを使って入力テキストから非同期でグラフデータを抽出する."""
     documents = [Document(page_content=text)]
     graph_transformer = LLMGraphTransformer(llm=llm)
     graph_documents = await graph_transformer.aconvert_to_graph_documents(documents)
@@ -29,7 +29,7 @@ async def extract_graph_data(text, llm):
 
 
 def summarize_text(text, llm, max_chars=25):
-    """Summarize the input text within a character limit using the provided LLM."""
+    """指定したLLMを使い、入力テキストを最大文字数以内で要約する."""
     prompt = ChatPromptTemplate.from_messages([
         ("system", f"次のテキストを{max_chars}文字以内で要約してください。"),
         ("human", "{text}"),
@@ -40,26 +40,26 @@ def summarize_text(text, llm, max_chars=25):
 
 def visualize_graph(graph_documents, output_file):
     """
-    Visualizes a knowledge graph using PyVis based on the extracted graph documents.
+    抽出したグラフドキュメントをもとにPyVisでナレッジグラフを可視化する。
 
-    Args:
-        graph_documents (list): A list of GraphDocument objects with nodes and relationships.
+    引数:
+        graph_documents (list): ノードとリレーションシップを持つGraphDocumentオブジェクトのリスト。
 
-    Returns:
-        tuple: The visualized network graph object, the path to the saved HTML file,
-        and the extracted nodes and relationships.
+    戻り値:
+        tuple: 可視化したネットワークグラフオブジェクト、保存したHTMLファイルのパス、
+        抽出したノードとリレーションシップ。
     """
-    # Create network
-    net = Network(height="1200px", width="100%", directed=True,
+    # ネットワークを作成
+    net = Network(height="800px", width="100%", directed=True,
                       notebook=False, bgcolor="#222222", font_color="white", filter_menu=True, cdn_resources='remote') 
 
     nodes = graph_documents[0].nodes
     relationships = graph_documents[0].relationships
 
-    # Build lookup for valid nodes
+    # 有効なノードのルックアップを作成
     node_dict = {node.id: node for node in nodes}
     
-    # Filter out invalid edges and collect valid node IDs
+    # 無効なエッジを除外し、有効なノードIDを収集
     valid_edges = []
     valid_node_ids = set()
     for rel in relationships:
@@ -67,28 +67,28 @@ def visualize_graph(graph_documents, output_file):
             valid_edges.append(rel)
             valid_node_ids.update([rel.source.id, rel.target.id])
 
-    # Track which nodes are part of any relationship
+    # いずれかのリレーションシップに含まれるノードIDを追跡
     connected_node_ids = set()
     for rel in relationships:
         connected_node_ids.add(rel.source.id)
         connected_node_ids.add(rel.target.id)
 
-    # Add valid nodes to the graph
+    # 有効なノードをグラフに追加
     for node_id in valid_node_ids:
         node = node_dict[node_id]
         try:
             net.add_node(node.id, label=node.id, title=node.type, group=node.type)
         except:
-            continue  # Skip node if error occurs
+            continue  # エラーが発生した場合はノードをスキップ
 
-    # Add valid edges to the graph
+    # 有効なエッジをグラフに追加
     for rel in valid_edges:
         try:
             net.add_edge(rel.source.id, rel.target.id, label=rel.type.lower())
         except:
-            continue  # Skip edge if error occurs
+            continue  # エラーが発生した場合はエッジをスキップ
 
-    # Configure graph layout and physics
+    # グラフのレイアウトと物理演算を設定
     net.set_options("""
         {
             "physics": {
@@ -107,26 +107,25 @@ def visualize_graph(graph_documents, output_file):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     try:
         net.save_graph(output_file)
-        print(f"Graph saved to {os.path.abspath(output_file)}")
+        print(f"グラフを保存しました: {os.path.abspath(output_file)}")
         return net, output_file
     except Exception as e:
-        print(f"Error saving graph: {e}")
+        print(f"グラフ保存時のエラー: {e}")
         return None
 
 
 def generate_knowledge_graph(text, model_name="gpt-4o-mini"):
     """
-    Generates and visualizes a knowledge graph from input text.
+    入力テキストからナレッジグラフを生成し可視化する。
 
-    This function runs the graph extraction asynchronously and then visualizes
-    the resulting graph using PyVis.
+    この関数はグラフ抽出を非同期で実行し、PyVisでグラフを可視化する。
 
-    Args:
-        text (str): Input text to convert into a knowledge graph.
-        model_name (str): OpenAI model name used for entity extraction.
+    引数:
+        text (str): ナレッジグラフに変換する入力テキスト。
+        model_name (str): エンティティ抽出に使用するOpenAIモデル名。
 
-    Returns:
-        tuple: The visualized network graph object and the saved file path.
+    戻り値:
+        tuple: 可視化したネットワークグラフオブジェクトと保存ファイルパス。
     """
     llm = ChatOpenAI(temperature=0, model_name=model_name)
     graph_documents = asyncio.run(extract_graph_data(text, llm))
@@ -139,7 +138,7 @@ def generate_knowledge_graph(text, model_name="gpt-4o-mini"):
     net, output_file = visualize_graph(graph_documents, output_file)
     nodes = graph_documents[0].nodes
     relationships = graph_documents[0].relationships
-    # Save nodes and relationships to JSON for later display
+    # ノードとリレーションシップをJSONで保存（後で表示用）
     json_path = os.path.splitext(output_file)[0] + ".json"
     try:
         nodes_data = [{"id": getattr(n, "id", ""), "type": getattr(n, "type", "")} for n in nodes]
@@ -154,5 +153,5 @@ def generate_knowledge_graph(text, model_name="gpt-4o-mini"):
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump({"nodes": nodes_data, "relationships": rels_data}, f, ensure_ascii=False, indent=2)
     except Exception as e:
-        print(f"Error saving json: {e}")
+        print(f"json保存時のエラー: {e}")
     return net, output_file, nodes, relationships

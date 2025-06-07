@@ -1,6 +1,6 @@
-# Import necessary modules
+# 必要なモジュールをインポート
 import streamlit as st
-import streamlit.components.v1 as components  # For embedding custom HTML
+import streamlit.components.v1 as components  # カスタムHTML埋め込み用
 from generate_knowledge_graph import generate_knowledge_graph
 import os
 import re
@@ -29,7 +29,7 @@ def _to_rel_dict(rel):
 
 
 def build_data_html(nodes, relationships):
-    """Return HTML snippet listing nodes and relationships with copy button."""
+    """ノードとリレーションシップをリスト表示し、コピー用ボタンを付与したHTMLスニペットを返す。"""
     unique = uuid.uuid4().hex
     nodes_dict = [_to_node_dict(n) for n in nodes]
     rels_dict = [_to_rel_dict(r) for r in relationships]
@@ -49,13 +49,13 @@ def build_data_html(nodes, relationships):
   <h4>Relationships</h4><ul>{rel_items}</ul>
 </div>
 <script>
-// Clipboard copy logic (tested on Windows)
+// クリップボードコピー処理（Windowsで動作確認済み）
 document.getElementById('copy-btn-{unique}').addEventListener('click', function() {{
   const text = document.getElementById('data-box-{unique}').innerText;
   if (navigator.clipboard && navigator.clipboard.writeText) {{
     navigator.clipboard.writeText(text);
   }} else if (window.clipboardData) {{
-    // IE fallback for Windows
+    // Windows用IEフォールバック
     window.clipboardData.setData('Text', text);
   }} else {{
     const textarea = document.createElement('textarea');
@@ -80,16 +80,16 @@ st.set_page_config(
 st.title("テキストから知識グラフを生成")
 
 model_options = [
-    "gpt-4o-mini",
-    "gpt-4o",
-    "gpt-4.1",
     "gpt-4.1-mini",
     "gpt-4.1-nano",
+    "gpt-4.1",
+    "gpt-4o-mini",
+    "gpt-4o",
 ]
 selected_model = st.sidebar.selectbox("LLMモデル:", model_options, index=0)
 
 st.sidebar.title("入力ドキュメント")
-# Remember the input method so users can switch back and forth
+# 入力方法を記憶し、ユーザーが切り替えられるようにする
 if "input_method" not in st.session_state:
     st.session_state.input_method = "テキストをアップロード"
 input_method = st.sidebar.radio(
@@ -102,7 +102,7 @@ if input_method == "テキストをアップロード":
 else:
     st.session_state.pop("text_upload", None)
 
-# Dropdown list of saved graphs
+# 保存済みグラフのドロップダウンリスト
 files = [f for f in os.listdir("out") if f.endswith(".html")]
 info_list = []
 for f in files:
@@ -138,7 +138,7 @@ if input_method == "テキストをアップロード":
 else:
     text = st.sidebar.text_area(
         "テキストを入力してください",
-        height=300,
+        height=200,
         key="text_input",
     )
     if text:
