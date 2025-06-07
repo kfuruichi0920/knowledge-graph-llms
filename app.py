@@ -13,6 +13,15 @@ st.set_page_config(
 
 st.title("テキストから知識グラフを生成")
 
+model_options = [
+    "gpt-4o-mini",
+    "gpt-4o",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4.1-nano",
+]
+selected_model = st.sidebar.selectbox("LLMモデル:", model_options, index=0)
+
 st.sidebar.title("入力ドキュメント")
 input_method = st.sidebar.radio(
     "入力方法を選択してください:",
@@ -31,7 +40,7 @@ if input_method == "Upload txt":
         text = uploaded_file.read().decode("utf-8")
         if st.sidebar.button("知識グラフを生成"):
             with st.spinner("知識グラフを生成しています..."):
-                net, output_path = generate_knowledge_graph(text)
+                net, output_path = generate_knowledge_graph(text, model_name=selected_model)
                 st.success("知識グラフの生成が完了しました！")
                 with open(output_path, "r", encoding="utf-8") as HtmlFile:
                     components.html(HtmlFile.read(), height=1000)
@@ -41,7 +50,7 @@ else:
     if text:
         if st.sidebar.button("知識グラフを生成"):
             with st.spinner("知識グラフを生成しています..."):
-                net, output_path = generate_knowledge_graph(text)
+                net, output_path = generate_knowledge_graph(text, model_name=selected_model)
                 st.success("知識グラフの生成が完了しました！")
                 with open(output_path, "r", encoding="utf-8") as HtmlFile:
                     components.html(HtmlFile.read(), height=1000)
