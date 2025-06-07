@@ -26,7 +26,7 @@
 knowledge-graph-llms/
 ├── app.py
 ├── generate_knowledge_graph.py
-├── knowledge_graph.html   # 生成されたグラフのサンプル
+├── out/                   # 生成されたグラフの保存先
 ├── knowledge_graph.ipynb  # Jupyter ノートブック版
 ├── requirements.txt
 └── README.md
