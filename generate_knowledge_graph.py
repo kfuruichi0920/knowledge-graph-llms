@@ -1,6 +1,7 @@
 from langchain_experimental.graph_transformers import LLMGraphTransformer
 from langchain_core.documents import Document
 from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 from pyvis.network import Network
 
 from dotenv import load_dotenv
@@ -26,7 +27,17 @@ async def extract_graph_data(text, llm):
     return graph_documents
 
 
-def visualize_graph(graph_documents):
+def summarize_text(text, llm, max_chars=25):
+    """Summarize the input text within a character limit using the provided LLM."""
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", f"次のテキストを{max_chars}文字以内で要約してください。"),
+        ("human", "{text}"),
+    ])
+    summary = llm.invoke(prompt.format(text=text)).content.strip().replace("\n", "")
+    return summary[:max_chars]
+
+
+def visualize_graph(graph_documents, output_file):
     """
     Visualizes a knowledge graph using PyVis based on the extracted graph documents.
 
@@ -93,8 +104,6 @@ def visualize_graph(graph_documents):
     """)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = os.path.join(OUTPUT_DIR, f"knowledge_graph_{timestamp}.html")
     try:
         net.save_graph(output_file)
         print(f"Graph saved to {os.path.abspath(output_file)}")
@@ -120,7 +129,13 @@ def generate_knowledge_graph(text, model_name="gpt-4o-mini"):
     """
     llm = ChatOpenAI(temperature=0, model_name=model_name)
     graph_documents = asyncio.run(extract_graph_data(text, llm))
-    net, output_file = visualize_graph(graph_documents)
+
+    summary = summarize_text(text, llm)
+    safe_summary = summary.replace(" ", "").replace("_", "").replace("/", "")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{timestamp}_{safe_summary}_{model_name}.html"
+    output_file = os.path.join(OUTPUT_DIR, filename)
+    net, output_file = visualize_graph(graph_documents, output_file)
     nodes = graph_documents[0].nodes
     relationships = graph_documents[0].relationships
-    return net, output_file, nodes, relationships
+    return net, output_file
