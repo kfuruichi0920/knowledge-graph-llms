@@ -6,6 +6,9 @@ from pyvis.network import Network
 from dotenv import load_dotenv
 import os
 import asyncio
+from datetime import datetime
+
+OUTPUT_DIR = "out"
 
 
 # Load the .env file
@@ -99,7 +102,9 @@ def visualize_graph(graph_documents):
         }
     """)
 
-    output_file = "knowledge_graph.html"
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = os.path.join(OUTPUT_DIR, f"knowledge_graph_{timestamp}.html")
     try:
         net.save_graph(output_file)
         print(f"Graph saved to {os.path.abspath(output_file)}")
