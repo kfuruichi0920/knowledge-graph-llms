@@ -16,23 +16,12 @@ load_dotenv()
 # Get API key from environment variable
 api_key = os.getenv("OPENAI_API_KEY")
 
-llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
-
-graph_transformer = LLMGraphTransformer(llm=llm)
-
 
 # Extract graph data from input text
-async def extract_graph_data(text):
-    """
-    Asynchronously extracts graph data from input text using a graph transformer.
-
-    Args:
-        text (str): Input text to be processed into graph format.
-
-    Returns:
-        list: A list of GraphDocument objects containing nodes and relationships.
-    """
+async def extract_graph_data(text, llm):
+    """Asynchronously extract graph data from input text using a given LLM."""
     documents = [Document(page_content=text)]
+    graph_transformer = LLMGraphTransformer(llm=llm)
     graph_documents = await graph_transformer.aconvert_to_graph_documents(documents)
     return graph_documents
 
@@ -114,7 +103,7 @@ def visualize_graph(graph_documents):
         return None
 
 
-def generate_knowledge_graph(text):
+def generate_knowledge_graph(text, model_name="gpt-4o-mini"):
     """
     Generates and visualizes a knowledge graph from input text.
 
@@ -123,10 +112,12 @@ def generate_knowledge_graph(text):
 
     Args:
         text (str): Input text to convert into a knowledge graph.
+        model_name (str): OpenAI model name used for entity extraction.
 
     Returns:
         tuple: The visualized network graph object and the saved file path.
     """
-    graph_documents = asyncio.run(extract_graph_data(text))
+    llm = ChatOpenAI(temperature=0, model_name=model_name)
+    graph_documents = asyncio.run(extract_graph_data(text, llm))
     net, output_file = visualize_graph(graph_documents)
     return net, output_file

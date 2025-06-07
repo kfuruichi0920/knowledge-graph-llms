@@ -12,7 +12,8 @@ A Streamlit application that extract graph data (entities and relationships) fro
 - Two input methods: text upload (.txt files) or direct text input
 - Interactive knowledge graph visualization
 - Customizable graph display with physics-based layout
-- Entity relationship extraction powered by OpenAI's GPT-4o model
+- Selectable LLM model from the sidebar
+- Entity relationship extraction using a selectable OpenAI GPT model
 
 ## Installation
 
@@ -65,22 +66,23 @@ This will start the application and open it in your default web browser (typical
 
 ## Usage
 
-1. Choose your input method from the sidebar (Upload txt or Input text)
-2. If uploading a file, select a .txt file from your computer
-3. If using direct input, type or paste your text into the text area
-4. Click the "Generate Knowledge Graph" button
-5. Wait for the graph to be generated (this may take a few moments depending on the length of the text)
-6. Explore the interactive knowledge graph:
+1. Select an LLM model from the dropdown at the top of the sidebar
+2. Choose your input method from the sidebar (Upload txt or Input text)
+3. If uploading a file, select a .txt file from your computer
+4. If using direct input, type or paste your text into the text area
+5. Click the "Generate Knowledge Graph" button
+6. Wait for the graph to be generated (this may take a few moments depending on the length of the text)
+7. Explore the interactive knowledge graph:
    - Drag nodes to rearrange the graph
    - Hover over nodes and edges to see additional information
    - Zoom in/out using the mouse wheel
    - Filter the graph for specific nodes and edges.
-7. The resulting HTML graph is saved in the `out` directory with a timestamped filename.
-8. Previously generated graphs can be selected from a dropdown list and viewed again.
+8. The resulting HTML graph is saved in the `out` directory with a timestamped filename.
+9. Previously generated graphs can be selected from a dropdown list and viewed again.
 
 ## How It Works
 
-The application uses LangChain's experimental graph transformers with OpenAI's GPT-4o model to:
+The application uses LangChain's experimental graph transformers with a selectable OpenAI GPT model to:
 1. Extract entities from the input text
 2. Identify relationships between these entities
 3. Generate a graph structure representing this information
