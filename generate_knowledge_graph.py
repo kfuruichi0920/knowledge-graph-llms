@@ -7,6 +7,7 @@ from pyvis.network import Network
 from dotenv import load_dotenv
 import os
 import asyncio
+import json
 from datetime import datetime
 
 OUTPUT_DIR = "out"
@@ -138,4 +139,20 @@ def generate_knowledge_graph(text, model_name="gpt-4o-mini"):
     net, output_file = visualize_graph(graph_documents, output_file)
     nodes = graph_documents[0].nodes
     relationships = graph_documents[0].relationships
+    # Save nodes and relationships to JSON for later display
+    json_path = os.path.splitext(output_file)[0] + ".json"
+    try:
+        nodes_data = [{"id": getattr(n, "id", ""), "type": getattr(n, "type", "")} for n in nodes]
+        rels_data = [
+            {
+                "source": getattr(r.source, "id", ""),
+                "target": getattr(r.target, "id", ""),
+                "type": getattr(r, "type", ""),
+            }
+            for r in relationships
+        ]
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump({"nodes": nodes_data, "relationships": rels_data}, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"Error saving json: {e}")
     return net, output_file, nodes, relationships
