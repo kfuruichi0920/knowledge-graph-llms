@@ -49,9 +49,22 @@ def build_data_html(nodes, relationships):
   <h4>Relationships</h4><ul>{rel_items}</ul>
 </div>
 <script>
+// Clipboard copy logic (tested on Windows)
 document.getElementById('copy-btn-{unique}').addEventListener('click', function() {{
   const text = document.getElementById('data-box-{unique}').innerText;
-  navigator.clipboard.writeText(text);
+  if (navigator.clipboard && navigator.clipboard.writeText) {{
+    navigator.clipboard.writeText(text);
+  }} else if (window.clipboardData) {{
+    // IE fallback for Windows
+    window.clipboardData.setData('Text', text);
+  }} else {{
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }}
 }});
 </script>
 """
@@ -118,7 +131,7 @@ if input_method == "テキストをアップロード":
                     text, model_name=selected_model
                 )
                 st.success("知識グラフの生成が完了しました！")
-                st.markdown(build_data_html(nodes, relationships), unsafe_allow_html=True)
+                components.html(build_data_html(nodes, relationships), height=320)
                 with open(output_path, "r", encoding="utf-8") as HtmlFile:
                     components.html(HtmlFile.read(), height=1000)
                 generated = True
@@ -135,7 +148,7 @@ else:
                     text, model_name=selected_model
                 )
                 st.success("知識グラフの生成が完了しました！")
-                st.markdown(build_data_html(nodes, relationships), unsafe_allow_html=True)
+                components.html(build_data_html(nodes, relationships), height=320)
                 with open(output_path, "r", encoding="utf-8") as HtmlFile:
                     components.html(HtmlFile.read(), height=1000)
                 generated = True
@@ -148,6 +161,6 @@ if not generated and selected_display:
             data = json.load(jf)
         nodes = data.get("nodes", [])
         relationships = data.get("relationships", [])
-        st.markdown(build_data_html(nodes, relationships), unsafe_allow_html=True)
+        components.html(build_data_html(nodes, relationships), height=320)
     with open(file_path, "r", encoding="utf-8") as HtmlFile:
         components.html(HtmlFile.read(), height=1000)
