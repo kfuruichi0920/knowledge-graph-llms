@@ -4,24 +4,58 @@ import streamlit.components.v1 as components  # For embedding custom HTML
 from generate_knowledge_graph import generate_knowledge_graph
 import os
 import re
+import json
+import uuid
+
+
+def _to_node_dict(node):
+    if isinstance(node, dict):
+        return {"id": node.get("id", ""), "type": node.get("type", "")}
+    return {"id": getattr(node, "id", ""), "type": getattr(node, "type", "")}
+
+
+def _to_rel_dict(rel):
+    if isinstance(rel, dict):
+        return {
+            "source": rel.get("source", ""),
+            "target": rel.get("target", ""),
+            "type": rel.get("type", ""),
+        }
+    return {
+        "source": getattr(rel.source, "id", ""),
+        "target": getattr(rel.target, "id", ""),
+        "type": getattr(rel, "type", ""),
+    }
 
 
 def build_data_html(nodes, relationships):
-    """Return HTML snippet listing nodes and relationships."""
+    """Return HTML snippet listing nodes and relationships with copy button."""
+    unique = uuid.uuid4().hex
+    nodes_dict = [_to_node_dict(n) for n in nodes]
+    rels_dict = [_to_rel_dict(r) for r in relationships]
     node_items = "".join(
-        [f"<li>{getattr(node, 'id', '')} ({getattr(node, 'type', '')})</li>" for node in nodes]
+        [f"<li>{n['id']} ({n['type']})</li>" for n in nodes_dict]
     )
     rel_items = "".join(
         [
-            f"<li>{getattr(rel.source, 'id', '')} -[{getattr(rel, 'type', '')}]-> {getattr(rel.target, 'id', '')}</li>"
-            for rel in relationships
+            f"<li>{r['source']} -[{r['type']}]-> {r['target']}</li>"
+            for r in rels_dict
         ]
     )
-    return (
-        "<div style='height:400px; overflow:auto; border:1px solid #ccc; padding:10px;'>"
-        "<h4>Nodes</h4><ul>" + node_items + "</ul>"
-        "<h4>Relationships</h4><ul>" + rel_items + "</ul></div>"
-    )
+    html = f"""
+<div id='data-box-{unique}' style='height:300px; overflow:auto; border:1px solid #ccc; padding:10px; position:relative;'>
+  <button id='copy-btn-{unique}' style='position:absolute; top:5px; right:5px;'>Copy</button>
+  <h4>Nodes</h4><ul>{node_items}</ul>
+  <h4>Relationships</h4><ul>{rel_items}</ul>
+</div>
+<script>
+document.getElementById('copy-btn-{unique}').addEventListener('click', function() {{
+  const text = document.getElementById('data-box-{unique}').innerText;
+  navigator.clipboard.writeText(text);
+}});
+</script>
+"""
+    return html
 
 st.set_page_config(
     page_icon=None,
@@ -91,5 +125,13 @@ else:
                 generated = True
 
 if not generated and selected_display:
-    with open(os.path.join("out", file_map[selected_display]), "r", encoding="utf-8") as HtmlFile:
+    file_path = os.path.join("out", file_map[selected_display])
+    json_path = os.path.splitext(file_path)[0] + ".json"
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as jf:
+            data = json.load(jf)
+        nodes = data.get("nodes", [])
+        relationships = data.get("relationships", [])
+        st.markdown(build_data_html(nodes, relationships), unsafe_allow_html=True)
+    with open(file_path, "r", encoding="utf-8") as HtmlFile:
         components.html(HtmlFile.read(), height=1000)
