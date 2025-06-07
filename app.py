@@ -5,6 +5,24 @@ from generate_knowledge_graph import generate_knowledge_graph
 import os
 import re
 
+
+def build_data_html(nodes, relationships):
+    """Return HTML snippet listing nodes and relationships."""
+    node_items = "".join(
+        [f"<li>{getattr(node, 'id', '')} ({getattr(node, 'type', '')})</li>" for node in nodes]
+    )
+    rel_items = "".join(
+        [
+            f"<li>{getattr(rel.source, 'id', '')} -[{getattr(rel, 'type', '')}]-> {getattr(rel.target, 'id', '')}</li>"
+            for rel in relationships
+        ]
+    )
+    return (
+        "<div style='height:400px; overflow:auto; border:1px solid #ccc; padding:10px;'>"
+        "<h4>Nodes</h4><ul>" + node_items + "</ul>"
+        "<h4>Relationships</h4><ul>" + rel_items + "</ul></div>"
+    )
+
 st.set_page_config(
     page_icon=None,
     layout="wide",
@@ -50,8 +68,11 @@ if input_method == "Upload txt":
         text = uploaded_file.read().decode("utf-8")
         if st.sidebar.button("知識グラフを生成"):
             with st.spinner("知識グラフを生成しています..."):
-                net, output_path = generate_knowledge_graph(text, model_name=selected_model)
+                net, output_path, nodes, relationships = generate_knowledge_graph(
+                    text, model_name=selected_model
+                )
                 st.success("知識グラフの生成が完了しました！")
+                st.markdown(build_data_html(nodes, relationships), unsafe_allow_html=True)
                 with open(output_path, "r", encoding="utf-8") as HtmlFile:
                     components.html(HtmlFile.read(), height=1000)
                 generated = True
@@ -60,8 +81,11 @@ else:
     if text:
         if st.sidebar.button("知識グラフを生成"):
             with st.spinner("知識グラフを生成しています..."):
-                net, output_path = generate_knowledge_graph(text, model_name=selected_model)
+                net, output_path, nodes, relationships = generate_knowledge_graph(
+                    text, model_name=selected_model
+                )
                 st.success("知識グラフの生成が完了しました！")
+                st.markdown(build_data_html(nodes, relationships), unsafe_allow_html=True)
                 with open(output_path, "r", encoding="utf-8") as HtmlFile:
                     components.html(HtmlFile.read(), height=1000)
                 generated = True
