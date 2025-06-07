@@ -34,7 +34,8 @@ def visualize_graph(graph_documents):
         graph_documents (list): A list of GraphDocument objects with nodes and relationships.
 
     Returns:
-        tuple: The visualized network graph object and the path to the saved HTML file.
+        tuple: The visualized network graph object, the path to the saved HTML file,
+        and the extracted nodes and relationships.
     """
     # Create network
     net = Network(height="1200px", width="100%", directed=True,
@@ -120,4 +121,6 @@ def generate_knowledge_graph(text, model_name="gpt-4o-mini"):
     llm = ChatOpenAI(temperature=0, model_name=model_name)
     graph_documents = asyncio.run(extract_graph_data(text, llm))
     net, output_file = visualize_graph(graph_documents)
-    return net, output_file
+    nodes = graph_documents[0].nodes
+    relationships = graph_documents[0].relationships
+    return net, output_file, nodes, relationships
