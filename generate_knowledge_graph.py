@@ -45,7 +45,7 @@ def visualize_graph(graph_documents):
         graph_documents (list): A list of GraphDocument objects with nodes and relationships.
 
     Returns:
-        pyvis.network.Network: The visualized network graph object.
+        tuple: The visualized network graph object and the path to the saved HTML file.
     """
     # Create network
     net = Network(height="1200px", width="100%", directed=True,
@@ -108,7 +108,7 @@ def visualize_graph(graph_documents):
     try:
         net.save_graph(output_file)
         print(f"Graph saved to {os.path.abspath(output_file)}")
-        return net
+        return net, output_file
     except Exception as e:
         print(f"Error saving graph: {e}")
         return None
@@ -125,8 +125,8 @@ def generate_knowledge_graph(text):
         text (str): Input text to convert into a knowledge graph.
 
     Returns:
-        pyvis.network.Network: The visualized network graph object.
+        tuple: The visualized network graph object and the saved file path.
     """
     graph_documents = asyncio.run(extract_graph_data(text))
-    net = visualize_graph(graph_documents)
-    return net
+    net, output_file = visualize_graph(graph_documents)
+    return net, output_file

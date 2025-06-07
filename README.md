@@ -76,6 +76,7 @@ This will start the application and open it in your default web browser (typical
    - Zoom in/out using the mouse wheel
    - Filter the graph for specific nodes and edges.
 7. The resulting HTML graph is saved in the `out` directory with a timestamped filename.
+8. Previously generated graphs can be selected from a dropdown list and viewed again.
 
 ## How It Works
 
