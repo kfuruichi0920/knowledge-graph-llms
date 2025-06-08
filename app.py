@@ -9,18 +9,52 @@ import uuid
 
 
 def _to_node_dict(node):
+    """
+    ノード情報を辞書型に変換する関数。
+
+    引数:
+        node (dictまたはオブジェクト): ノード情報。dict型または属性を持つオブジェクトを想定。
+
+    処理内容:
+        - nodeがdict型の場合:
+            - 'id'キーと'type'キーを取得し、それぞれ値がなければ空文字を返す。
+        - nodeがdict型でない場合:
+            - 'id'属性と'type'属性をgetattrで取得し、なければ空文字を返す。
+
+    戻り値:
+        dict: {'id': ノードID, 'type': ノードタイプ}
+    """
+    # dict型の場合はgetで取得
     if isinstance(node, dict):
         return {"id": node.get("id", ""), "type": node.get("type", "")}
+    # オブジェクトの場合はgetattrで取得
     return {"id": getattr(node, "id", ""), "type": getattr(node, "type", "")}
 
 
 def _to_rel_dict(rel):
+    """
+    リレーションシップ情報を辞書型に変換する関数。
+
+    引数:
+        rel (dictまたはオブジェクト): リレーションシップ情報。dict型または属性を持つオブジェクトを想定。
+
+    処理内容:
+        - relがdict型の場合:
+            - 'source', 'target', 'type'キーを取得し、なければ空文字を返す。
+        - relがdict型でない場合:
+            - rel.source, rel.targetのid属性、rel.type属性をgetattrで取得し、なければ空文字を返す。
+
+    戻り値:
+        dict: {'source': ソースノードID, 'target': ターゲットノードID, 'type': リレーションタイプ}
+    """
+    # dict型の場合はgetで取得
     if isinstance(rel, dict):
         return {
             "source": rel.get("source", ""),
             "target": rel.get("target", ""),
             "type": rel.get("type", ""),
         }
+    # オブジェクトの場合はgetattrで取得
     return {
         "source": getattr(rel.source, "id", ""),
         "target": getattr(rel.target, "id", ""),
@@ -29,10 +63,15 @@ def _to_rel_dict(rel):
 
 
 def build_data_html(nodes, relationships):
-    """ノードとリレーションシップをリスト表示し、コピー用ボタンを付与したHTMLスニペットを返す。"""
-    unique = uuid.uuid4().hex
-    nodes_dict = [_to_node_dict(n) for n in nodes]
-    rels_dict = [_to_rel_dict(r) for r in relationships]
+    """
+    ノードとリレーションシップをリスト表示し、コピー用ボタンを付与したHTMLスニペットを返す。
+    nodes: ノード情報のリスト
+    relationships: リレーションシップ情報のリスト
+    HTML内で一意となるIDを生成し、ノード・リレーションシップ一覧とコピー機能を提供する。
+    """
+    unique = uuid.uuid4().hex  # 各HTMLブロックごとに一意なIDを生成
+    nodes_dict = [_to_node_dict(n) for n in nodes]  # ノード情報を辞書型に変換
+    rels_dict = [_to_rel_dict(r) for r in relationships]  # リレーション情報を辞書型に変換
     node_items = "".join(
         [f"<li>{n['id']} ({n['type']})</li>" for n in nodes_dict]
     )
@@ -42,6 +81,7 @@ def build_data_html(nodes, relationships):
             for r in rels_dict
         ]
     )
+    # HTMLとJavaScriptでコピー機能付きのリストを生成
     html = f"""
 <div id='data-box-{unique}' style='height:300px; overflow:auto; border:1px solid #ccc; padding:10px; position:relative;'>
   <button id='copy-btn-{unique}' style='position:absolute; top:5px; right:5px;'>Copy</button>
